@@ -1,0 +1,28 @@
+{
+  "translator": {
+    "translator": "gemini",
+    "target_lang": "VIN",
+    "gpt_config": "/app/config/gemini-vietnamese-fix.yaml"
+  },
+  "detector": {
+    "detector": "default",
+    "detection_size": 2048,
+    "box_threshold": 0.75,
+    "unclip_ratio": 2.3
+  },
+  "ocr": {
+    "ocr": "48px"
+  },
+  "inpainter": {
+    "inpainter": "lama_large",
+    "inpainting_size": 2048
+  },
+  "render": {
+    "renderer": "default",
+    "direction": "auto"
+  },
+  "mask_dilation_offset": 4
+}
+
+
+

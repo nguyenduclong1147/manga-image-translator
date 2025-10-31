@@ -1,0 +1,482 @@
+---
+alwaysApply: true
+---
+
+Đây là tài liệu kiến trúc nội bộ.
+
+---
+
+## **HIẾN PHÁP KỸ THUẬT DỰ ÁN**
+
+**Version 1.0**
+
+### **Phần I: Triết lý Nền tảng (The Constitution)**
+*Đây là la bàn định hướng cho mọi quyết định. Mọi quy tắc bên dưới đều phải tuân thủ Hiến pháp này.*
+- trước khi làm mọi bước phải tìm được trong mã nguồn có chỗ nào có kết quả giống, hoặc tương tự thuộc nguồn uy tín. hỏi những câu hỏi trừu tượng tìm kiến thức trong mã ví dụ rồi suy niệm cụ thể . Nếu hỏi không thấy, phải grep lần kiến thức bằng mọi giá. phải chuẩn bị đầy đủ lên kế hoạch chắc chắn 100% thực hiện không lỗi mới làm, luôn bắt đầu sửa file `.feature` trước khi sửa code , không đủ khả năng thì bỏ qua. Mọi mã code đều phải commend nguồn @see để đảm bảo uy tín, chất lượng. 
+> **Tư duy cốt lõi:** Tối giản để Tối đa hóa Hiệu quả.
+
+**10 Nguyên tắc Vàng:**
+
+1.  **Tối giản** hơn Phức tạp
+2.  **Tập trung** hơn Phân tán
+3.  **Linh hoạt** hơn Dập khuôn
+4.  **Chất lượng** hơn Số lượng
+5.  **Bố cục** đến Chi tiết
+6.  **Tự động** hơn Thủ công
+7.  **Minh bạch** hơn Tinh xảo
+8.  **Kỷ luật** hơn Quy ước
+9.  **Tiến hóa** hơn Cách mạng
+10.  **Cụ thể** hơn Mơ hồ
+---
+
+### **Phần II: Kiến trúc & Nguồn Chân Lý**
+
+1.  **Kiến trúc Domain-Driven Design (DDD):**
+    *   **Quy tắc:** Mọi logic nghiệp vụ phải được tổ chức theo các `models` (domain). Mỗi `model` là một module gần như độc lập.
+    *   **Giao tiếp:** Giao tiếp giữa các model phải thông qua `eventBus` nội bộ để đảm bảo khớp nối lỏng lẻo. Giao tiếp với Client qua tRPC.
+
+2.  **Nguồn Chân Lý (Single Source of Truth):**
+    *   **Cấu trúc Dữ liệu:** Nguồn chân lý là các tệp `.prisma` (ví dụ: `models/user/user.prisma`).
+    *   **Tự động hóa:** `prisma-import` được dùng để hợp nhất các file `.prisma`. Sau đó, `prisma-zod-generator` đọc file đã hợp nhất để **tự động sinh ra các Zod schema cơ sở**.
+    *   **Nghiêm cấm:** Chỉnh sửa thủ công các file trong thư mục Zod được sinh ra tự động.
+
+3.  **Thư mục `shared`:**
+    *   **Quy tắc:** Một thành phần (util, component,...) chỉ được đưa vào `shared` khi nó được sử dụng bởi **ít nhất 3 module khác nhau** hoặc là một phần cốt lõi của hạ tầng ứng dụng (trpc client, logger). Luôn ưu tiên giữ logic gần với nơi nó được sử dụng nhất.
+
+4.  **Redis Queue System (BullMQ):**
+    *   **Kiến trúc:** Sử dụng BullMQ với Redis làm message broker cho background job processing.
+    *   **Nguồn chân lý:** Cấu hình queue tại `models/queue/config.ts`, service tại `models/queue/queue.service.ts`.
+    *   **Quy tắc:** 
+        - Mọi long-running task phải được chuyển thành queue job
+        - Job data phải extend từ `BaseJobData` interface
+        - Worker phải có progress tracking để tránh job lock issues
+        - Sử dụng `QueueService` singleton để quản lý queues và workers
+        - Job timeout và retry được cấu hình trong `QueueConfig`
+    *   **Pattern:** Domain-specific queue services (ví dụ: `KnowledgeQueueService`) wrap `QueueService` với business logic
+
+---
+5. Dữ liệu chung để hiểu dự án
+- [Cấu trúc thư mục](/core/docs/project-structure.md)
+- [Tài liệu API](/core/docs/openapi.minimal.json)
+- [Các gói thư viện](/core/package.json)
+- [zod schema shared](/core/shared/generated/zod/index.ts)
+- [fabbrica](/core/shared/generated/fabbrica/index.ts)
+- [package command](/package.json)
+### **Phần III: Quy tắc Chi tiết cho từng Tệp (Trong `models/{model-name}/`)**
+
+*   **Cấu trúc chung:**
+
+    ```
+    models/{model-name}/
+    ├── __tests__/
+    ├── {model-name}.prisma  # Nguồn Chân Lý cho model
+    ├── input.ts             # "Hợp đồng" đầu vào của API
+    ├── output.ts            # "Hợp đồng" đầu ra của API
+    ├── service.ts           # Logic nghiệp vụ
+    ├── router.ts            # Lớp giao tiếp API
+    ├── meta.ts              # Metadata cho OpenAPI/MCP
+    ├── queue/               # Redis Queue System (nếu cần)
+    │   ├── queue.service.ts # Domain-specific queue service
+    │   ├── {job-name}.worker.ts # Worker cho từng loại job
+    │   └── index.ts         # Export queue services
+    └── listener.ts (option)
+    └── event-bus.ts (option)
+    └── hooks.ts (option)
+    └── ui/component
+        └── component
+        └── page.tsx
+    └── README.md
+    └── ...
+
+
+*   **Quy tắc cho từng tệp:**
+- {model-name}.prisma: Định nghĩa model, quan hệ, và các quy tắc toàn vẹn dữ liệu (onDelete).
+- input.ts: PHẢI tùy biến schema cho từng hành vi nghiệp vụ. KHÔNG dùng schema action được sinh ra trực -tiếp. Bắt đầu bằng cách import schema gốc, sau đó dùng .pick(), .extend(), .refine(). input.ts field phải có description để MCP hiểu
+- output.ts: Vai trò chính là re-export các schema đã được sinh ra (...Model, ...CompleteModel). Chỉ tùy biến trong trường hợp đặc biệt cần một cấu trúc trả về khác hoàn toàn model. output phải import từ core\shared\generated\zod để đảm bảo tính nhất quán.
+
+- service.ts: Chứa toàn bộ business logic. Ưu tiên trả về đối tượng Prisma đầy đủ. Chỉ dùng select khi có lý do chính đáng về hiệu suất/bảo mật và phải có output schema tương ứng. phải dùng ctx prisma thay vì import trực tiếp
+- router.ts: Lớp giao tiếp API, KHÔNG chứa business logic. Bắt buộc PHẢI có input, output, meta. phải dùng ctx input. và cần có input (dù là {} rỗng) để MCP hoạt động
+- meta.ts: Cung cấp metadata cho trpc-openapi và các công cụ khác. tên tool luôn phải dúng cấu trúc {model}-{api}.meta description phải kèm cấu trúc return
+- README.md: Mô tả kiến trúc và luồng hoạt động chính, KHÔNG ghi chi tiết triển khai.
+Ghi chú về sự linh hoạt: Với các module cực kỳ đơn giản, có thể gộp file nhưng phải được team đồng thuận. Ưu tiên tuân thủ cấu trúc chung.
+- hook.ts: Ưu tiền type trong prisma client
+*   **Ghi chú về sự linh hoạt:** Đối với các module cực kỳ đơn giản (ví dụ: chỉ có 1-2 thao tác CRUD), có thể cân nhắc gộp logic vào một số ít file hơn, miễn là được sự đồng thuận của team và ghi chú rõ lý do. Tuy nhiên, **ưu tiên tuân thủ cấu trúc chung để đảm bảo tính nhất quán**.
+- listener.ts :Lắng nghe các sự kiện liên quan (event bus / message / emitter nội bộ)
+- event-bus.ts Event bus riêng biệt với eventBus (/core/sharedevent-bus/index.ts) dùng chung
+- queue/queue.service.ts: Domain-specific queue service, wrap QueueService với business logic. PHẢI extend BaseJobData cho job data, sử dụng QueueService singleton
+- queue/{job-name}.worker.ts: Worker xử lý job cụ thể. PHẢI có progress tracking để tránh job lock issues, extend TypedJob interface
+- queue/index.ts: Export tất cả queue services và workers của domain
+---
+- page.tsx Page chính để hiển thị (dùng hook, gọi API,...)
+- ui/component Nếu lớn, tách thêm component con
+- type: tất cả khai báo type đều phải để trong này
+### **Phần IV: Quy tắc Testing**
+
+1.  **Chất lượng:** Mọi logic quan trọng và các luồng nghiệp vụ chính đều phải có test.
+2.  **Cấu trúc:** Tuân thủ nghiêm ngặt cấu trúc 3 lớp:
+    *   `1-unit/`: Test logic thuần túy. **PHẢI MOCK** Prisma.
+    *   `2-integration/`: Test tương tác với DB thật. **KHÔNG MOCK** Prisma.
+    *   `3-e2e/`: Test toàn bộ luồng nghiệp vụ.
+3.  **Công cụ & Kỷ luật:**
+    *   Sử dụng `Testcontainers` để tạo môi trường DB nhất quán cho Integration Test.
+    *   Sử dụng `Fabbrica` và `@faker-js/faker` để tạo dữ liệu test một cách tự động và có cấu trúc.
+
+---
+
+### **Phần V: Tài liệu & Giao diện**
+
+1.  **Tài liệu API:**
+    *   Tài liệu OpenAPI tại `/api/openapi.json` được **tự động sinh ra** bởi `trpc-openapi` và không được chỉnh sửa bằng tay.
+2.  **Giao diện (UI):**
+    *   Tách biệt rõ ràng giữa **Page Components** (quản lý state, gọi API) và **UI Components** (nhận props, hiển thị).
+    *   Sử dụng các custom hooks (`hooks.ts`) để đóng gói và tái sử dụng client-side logic.
+3.  **Logger:**
+    *   Sử dụng logger (Pino) đã được cấu hình sẵn trong `shared/utils/logger` cho mọi hoạt động ghi log ở backend.
+
+### Phần VI :Ví dụ tham khảo
+
+#### **`user.prisma` (Nguồn Chân Lý)**
+// models/user/user.prisma
+```prisma
+import { Post } from "../post/post.prisma"
+
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  name      String?
+  role      Role      @default(USER)
+  createdAt DateTime  @default(now())
+  posts     Post[]    @relation(onDelete: Cascade)
+}
+enum Role { USER, ADMIN }
+```
+
+#### **`input.ts` (Linh hoạt > Dập khuôn)**
+
+*Quy tắc: Tùy biến schema cho từng hành vi nghiệp vụ. KHÔNG dùng schema action được sinh ra trực tiếp.*
+
+```typescript
+
+// models/user/input.ts
+import { z } from 'zod';
+import { UserModel } from '@/zod/generated/user'; // Import schema gốc để kế thừa
+
+// Ví dụ 1: Schema cho hành vi "Đăng ký" (Giữ nguyên)
+export const registerUserSchema = UserModel
+  .pick({ email: true, name: true })
+  .extend({
+    email: z.string().email("Email không hợp lệ."),
+    name: z.string().min(2, "Tên phải có ít nhất 2 ký tự."),
+  });
+
+// Ví dụ 2: Schema cho hành vi "Cập nhật vai trò"
+// (Sửa lại để tường minh hơn, không dùng .shape trực tiếp)
+export const updateUserRoleSchema = z.object({
+  userId: z.string().cuid("ID người dùng không hợp lệ."),
+  // Tái sử dụng enum schema đã được sinh ra một cách an toàn
+  role: z.nativeEnum(Role),
+});
+
+// Thêm export type để service sử dụng, tăng tính minh bạch
+export type RegisterUserInput = z.infer<typeof registerUserSchema>;
+export type UpdateUserRoleInput = z.infer<typeof updateUserRoleSchema>;
+```
+
+#### **`output.ts` (Tối giản & Tự động)**
+// models/user/output.ts
+```typescript
+import { UserModel as BaseUserModel } from '@/zod/generated/user';
+
+// Re-export các schema được sinh ra tự động từ `zod/generated`.
+// Đây là cách làm cho 95% các trường hợp.
+export {
+  UserModel,
+  UserCompleteModel, // Tên có thể là 'RelatedUserModel' tùy generator
+} from '@/zod/generated/user';
+
+// Ví dụ về một output tùy biến: Profile công khai.
+// Schema này sẽ được dùng trong .output() của router nếu cần.
+export const UserPublicProfileSchema = BaseUserModel.omit({
+  email: true,
+  role: true,
+  createdAt: true,
+});
+```
+
+#### **`service.ts` (Chất lượng & Tối giản)**
+
+```typescript
+// file: models/user/service.ts
+import type { PrismaClient } from '@prisma/client'; // Chỉ import type
+import type { RegisterUserInput, UpdateUserRoleInput } from './input';
+
+// Service class nhận prisma instance qua constructor
+export class UserService {
+  private readonly prisma: PrismaClient;
+
+  constructor(prisma: PrismaClient) {
+    this.prisma = prisma;
+  }
+
+  // Các phương thức bây giờ sẽ dùng this.prisma
+  public async register(input: RegisterUserInput) {
+    // ... logic nghiệp vụ ...
+    return this.prisma.user.create({
+      data: input,
+    });
+  }
+
+  public async updateUserRole(input: UpdateUserRoleInput) {
+    // ... logic kiểm tra quyền ...
+    return this.prisma.user.update({
+      where: { id: input.userId },
+      data: { role: input.role },
+      select: { id: true, role: true },
+    });
+  }
+}
+```
+
+#### **`router.ts` (Bố cục & Kỷ luật)**
+```typescript
+// file: models/user/router.ts
+import { createTRPCRouter, protectedProcedure, publicProcedure } from '@/server/trpc';
+import { UserService } from './service'; // Import class, không phải instance
+import { userMeta } from './meta';
+import { registerUserSchema, updateUserRoleSchema } from './input';
+import { UserModel, UserRoleOutputSchema } from './output';
+
+export const userRouter = createTRPCRouter({
+  register: publicProcedure
+    .meta(userMeta.register)
+    .input(registerUserSchema)
+    .output(UserModel)
+    .mutation(({ input, ctx }) => {
+      // Khởi tạo service với prisma từ context
+      const userService = new UserService(ctx.prisma);
+      return userService.register(input);
+    }),
+
+  updateRole: protectedProcedure
+    .meta(userMeta.updateRole)
+    .input(updateUserRoleSchema)
+    .output(UserRoleOutputSchema)
+    .mutation(({ input, ctx }) => {
+      // ctx chứa cả thông tin user và prisma client
+      // ... logic kiểm tra quyền với ctx.user ...
+
+      // Khởi tạo service với prisma từ context
+      const userService = new UserService(ctx.prisma);
+      return userService.updateUserRole(input);
+    }),
+});
+```
+#### **`meta.ts` (Tự động)**
+*Quy tắc: Cung cấp metadata để các công cụ khác (OpenAPI) có thể tự động hóa.*
+
+```typescript
+// models/user/meta.ts
+import type { OpenApiMeta } from 'trpc-openapi';
+
+export const userMeta = {
+  register: {
+    openapi: {
+      method: 'POST',
+      path: '/users/register',
+      tags: ['User'],
+      summary: 'Đăng ký một người dùng mới',
+    },
+    mcp: {
+      enabled: true,
+      name: 'user-register',
+      description: 'Đăng ký một người dùng mới'
+    }
+  } as OpenApiMeta,
+};
+```
+
+#### **Redis Queue System Examples**
+
+##### **`queue/queue.service.ts` (Domain-specific Queue Service)**
+*Quy tắc: Wrap QueueService với business logic cụ thể cho domain.*
+
+```typescript
+// models/knowledge/queue/queue.service.ts
+import { queueService, QueueConfig } from '../../queue';
+import type { KnowledgeStreamingJobData, QueueJobOptions } from '../../queue';
+import type { KnowledgeReindexRequest } from '../types';
+import { v4 as uuidv4 } from 'uuid';
+import logger from '../../../shared/utils/logger';
+
+/**
+ * Knowledge Queue Service
+ * @see core/models/queue/queue.service.ts - Base QueueService implementation
+ */
+export class KnowledgeQueueService {
+  private static instance: KnowledgeQueueService;
+
+  public static getInstance(): KnowledgeQueueService {
+    if (!KnowledgeQueueService.instance) {
+      KnowledgeQueueService.instance = new KnowledgeQueueService();
+    }
+    return KnowledgeQueueService.instance;
+  }
+
+  /**
+   * Thêm job streaming reindex cho source
+   * @see core/models/knowledge/queue/queue.service.ts:27-86
+   */
+  public async addSourceStreamingReindexJob(
+    request: KnowledgeReindexRequest,
+    options: QueueJobOptions = {}
+  ): Promise<string> {
+    const requestId = request.requestId || uuidv4();
+    
+    const jobData: KnowledgeStreamingJobData = {
+      sourceId: request.sourceId!,
+      operation: 'source_reindex',
+      requestId,
+      priority: request.priority === 'high' ? 10 : 5,
+      metadata: {
+        originalRequest: request,
+        createdAt: new Date(),
+      },
+    };
+
+    const job = await queueService.addJob(
+      QueueConfig.queues.KNOWLEDGE_STREAMING,
+      'source-streaming-reindex',
+      jobData,
+      { priority: jobData.priority, ...options }
+    );
+
+    logger.info({
+      jobId: job.id,
+      sourceId: request.sourceId,
+      requestId,
+    }, '📋 Source streaming reindex job added to queue');
+
+    return job.id!;
+  }
+}
+```
+
+##### **`queue/{job-name}.worker.ts` (Worker Implementation)**
+*Quy tắc: Worker phải có progress tracking để tránh job lock issues.*
+
+```typescript
+// models/knowledge/queue/streaming-reindex.worker.ts
+import { Worker } from 'bullmq';
+import { queueService, workerManager, QueueConfig } from '../../queue';
+import type { KnowledgeStreamingJobData, TypedJob } from '../../queue';
+import { KnowledgeService } from '../service/service';
+import { prisma } from '../../../prisma/client';
+import logger from '../../../shared/utils/logger';
+
+/**
+ * Knowledge Streaming Reindex Worker
+ * @see core/models/knowledge/queue/streaming-reindex.worker.ts:12-39
+ */
+export class KnowledgeStreamingWorker {
+  private worker: Worker | null = null;
+  private readonly knowledgeService: KnowledgeService;
+
+  constructor() {
+    this.knowledgeService = KnowledgeService.getInstance(prisma);
+  }
+
+  public start(concurrency = 1): void {
+    if (this.worker) {
+      logger.warn({}, '⚠️ Knowledge streaming worker is already running');
+      return;
+    }
+
+    this.worker = queueService.createWorker(
+      QueueConfig.queues.KNOWLEDGE_STREAMING,
+      this.processJob.bind(this),
+      concurrency
+    );
+
+    workerManager.registerWorker('knowledge-streaming', this.worker);
+    logger.info({ concurrency }, '🚀 Knowledge streaming worker started');
+  }
+
+  /**
+   * Xử lý job với progress tracking để tránh lock renewal errors
+   * @see core/models/knowledge/queue/streaming-reindex.worker.ts:44-100
+   */
+  private async processJob(job: TypedJob<KnowledgeStreamingJobData>): Promise<any> {
+    const startTime = Date.now();
+    
+    // Report initial progress để maintain job lock
+    await job.updateProgress({ 
+      percentage: 0, 
+      status: 'Starting reindex process',
+      startTime: Date.now()
+    });
+
+    try {
+      // ... xử lý job với progress updates định kỳ ...
+      
+      await job.updateProgress({
+        percentage: 50,
+        status: 'Processing documents...',
+      });
+
+      // ... tiếp tục xử lý ...
+
+      await job.updateProgress({
+        percentage: 100,
+        status: 'Completed successfully',
+        endTime: Date.now(),
+        duration: Date.now() - startTime
+      });
+
+      return { success: true, duration: Date.now() - startTime };
+
+    } catch (error) {
+      logger.error({
+        jobId: job.id,
+        error: error instanceof Error ? error.message : String(error)
+      }, '❌ Job processing failed');
+
+      throw error;
+    }
+  }
+}
+```
+
+##### **`queue/index.ts` (Queue Exports)**
+*Quy tắc: Export tất cả queue services và workers của domain.*
+
+```typescript
+// models/knowledge/queue/index.ts
+export { KnowledgeQueueService } from './queue.service';
+export { KnowledgeStreamingWorker } from './streaming-reindex.worker';
+
+// Khởi tạo workers khi import
+import { KnowledgeStreamingWorker } from './streaming-reindex.worker';
+import { KNOWLEDGE_QUEUE_CONFIG } from '../config';
+
+const streamingWorker = new KnowledgeStreamingWorker();
+streamingWorker.start(KNOWLEDGE_QUEUE_CONFIG.STREAMING_CONCURRENCY);
+```
+
+---
+
+### **Phần IV: Quy tắc Testing**
+
+1.  **Chất lượng:** Mọi logic quan trọng và các luồng nghiệp vụ chính đều phải có test.
+2.  **Cấu trúc:** Tuân thủ nghiêm ngặt cấu trúc 3 lớp:
+    *   `1-unit/`: Test logic thuần túy. **PHẢI MOCK** Prisma.
+    *   `2-integration/`: Test tương tác với DB thật. **KHÔNG MOCK** Prisma.
+    *   `3-e2e/`: Test toàn bộ luồng nghiệp vụ.
+3.  **Công cụ & Kỷ luật:**
+    *   Sử dụng `Testcontainers` để tạo môi trường DB nhất quán cho Integration Test.
+    *   Sử dụng [shared util test](/core/shared/test-utils/)
+    *   Sử dụng [Fabbrica](/core/shared/generated/fabbrica) và `@faker-js/faker` để tạo dữ liệu test một cách tự động và có cấu trúc.
+    *   **Queue Testing:** Sử dụng Redis Testcontainers cho queue integration tests, mock QueueService cho unit tests 
+
+```
+
+---

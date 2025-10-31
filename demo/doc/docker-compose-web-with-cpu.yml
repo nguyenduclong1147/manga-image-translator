@@ -7,7 +7,12 @@ services:
     volumes:
       - ./../../result:/app/result
       - ./../../server/main.py:/app/server/main.py
-      - ./../../server/instance.py:/app/server/instance.py      
+      - ./../../server/instance.py:/app/server/instance.py
+      - ./../../server/request_extraction.py:/app/server/request_extraction.py
+      - ./../../server/myqueue.py:/app/server/myqueue.py
+      - ./../../server/to_json.py:/app/server/to_json.py
+      - ./../../server/streaming.py:/app/server/streaming.py
+      - ./../../server/sent_data_internal.py:/app/server/sent_data_internal.py
     ports:
       - 5003:5003
     ipc: host

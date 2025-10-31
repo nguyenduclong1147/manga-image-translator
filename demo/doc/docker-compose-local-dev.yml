@@ -4,10 +4,10 @@ services:
       context: ./../../
     container_name: manga_image_translator_localdev
     # Batch Mode
-    command: local --verbose --config-file --image "/app/Manga" # (FOR GPU) --use-gpu  
+    #command: local --verbose --config-file --image "/app/Manga" --use-gpu  
     # Web Mode 
-    #entrypoint: python
-    #command: server/main.py --start-instance --host=0.0.0.0 --port=5003 # (FOR GPU) --use-gpu
+    entrypoint: ["python", "server/main.py"]
+    command: ["--start-instance", "--host=0.0.0.0", "--port=5003", "--use-gpu"]
 
     volumes:
       - ./../../manga_image_translator_localdev:/app
@@ -17,9 +17,29 @@ services:
 
     ipc: host
 
+    environment:
+      # GPU Configuration
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+      
+      # API Keys (configure as needed)
+      OPENAI_API_KEY: ''
+      OPENAI_API_BASE: ''
+      OPENAI_MODEL: ''
+      
+      # Other translator APIs
+      BAIDU_APP_ID: ''
+      BAIDU_SECRET_KEY: ''
+      YOUDAO_APP_KEY: ''
+      YOUDAO_SECRET_KEY: ''
+      DEEPL_AUTH_KEY: ''
+      GROQ_API_KEY: ''
+      GEMINI_API_KEY: ''
+      DEEPSEEK_API_KEY: ''
+
     # For GPU
-    #deploy:
-    #  resources:
-    #    reservations:
-    #      devices:
-    #        - capabilities: [gpu]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]

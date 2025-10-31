@@ -1,0 +1,114 @@
+Dựa trên 10 nguyên tắc vàng bạn cung cấp, dưới đây là bộ quy tắc lập trình chi tiết, được xây dựng để hướng dẫn các nhà phát triển tạo ra sản phẩm phần mềm chất lượng cao, dễ bảo trì và có khả năng phát triển bền vững.
+
+### **Bộ Quy Tắc Lập Trình Dựa Trên 10 Nguyên Tắc Vàng**
+
+---
+
+#### **1. Tối giản hơn Phức tạp (Keep It Simple, Stupid - KISS)**
+
+**Quy tắc:** Luôn ưu tiên giải pháp đơn giản và dễ hiểu nhất. Tránh các cấu trúc phức tạp, các tầng trừu tượng không cần thiết và những đoạn mã "thông minh" nhưng khó đọc.
+
+*   **Hành động cụ thể:**
+    *   Chia nhỏ các hàm/phương thức để mỗi đơn vị chỉ thực hiện một nhiệm vụ duy nhất (Single Responsibility Principle).
+    *   Sử dụng tên biến, tên hàm rõ ràng, có ý nghĩa để mã nguồn tự diễn giải mà không cần quá nhiều chú thích.
+    *   Hạn chế tối đa việc tối ưu hóa sớm. Chỉ tối ưu khi đã xác định được điểm nghẽn cổ chai thông qua dữ liệu thực tế.
+
+---
+
+#### **2. Tập trung hơn Phân tán**
+
+**Quy tắc:** Tập trung vào việc hoàn thành một nhiệm vụ tại một thời điểm. Tránh đa nhiệm và các yếu tố gây xao nhãng để đảm bảo chất lượng và hiệu suất công việc.
+
+*   **Hành động cụ thể:**
+    *   Tạo danh sách công việc (to-do list) hàng ngày và sắp xếp thứ tự ưu tiên.
+    *   Áp dụng các kỹ thuật quản lý thời gian như Pomodoro (làm việc tập trung trong 25-50 phút, sau đó nghỉ ngắn) để duy trì sự tập trung cao độ.
+    *   Khi giải quyết một vấn đề, hãy tập trung hoàn toàn vào nó, tránh chuyển đổi qua lại giữa các tác vụ khác nhau.
+
+---
+
+#### **3. Linh hoạt hơn Dập khuôn**
+
+**Quy tắc:** Xây dựng hệ thống có khả năng thích ứng với sự thay đổi. Tránh các thiết kế cứng nhắc, khó mở rộng và khó thay đổi khi yêu cầu của dự án phát triển.
+
+*   **Hành động cụ thể:**
+    *   Áp dụng các nguyên tắc thiết kế hướng đối tượng (SOLID) để tạo ra các module độc lập, dễ dàng thay thế và tái sử dụng.
+    *   Sử dụng các mẫu thiết kế (Design Patterns) phù hợp để giải quyết các vấn đề phổ biến một cách linh hoạt.
+    *   Ưu tiên cấu hình (configuration) hơn là mã hóa cứng (hard-coding) các giá trị.
+
+---
+
+#### **4. Chất lượng hơn Số lượng**
+
+**Quy tắc:** Chất lượng mã nguồn là ưu tiên hàng đầu, quan trọng hơn việc viết nhiều dòng mã. Mã nguồn chất lượng cao giúp giảm thiểu lỗi, dễ bảo trì và nâng cao hiệu suất tổng thể của ứng dụng.
+
+*   **Hành động cụ thể:**
+    *   Tuân thủ các quy ước viết mã (coding conventions) một cách nhất quán.
+    *   Thực hiện đánh giá mã nguồn (code review) thường xuyên để các thành viên trong nhóm có thể học hỏi lẫn nhau và phát hiện sớm các vấn đề.
+    *   Viết các bài kiểm thử tự động (automated tests) như unit test, integration test để đảm bảo tính đúng đắn của mã nguồn.
+    *   Tái cấu trúc (refactoring) mã nguồn định kỳ để cải thiện cấu trúc và loại bỏ "code smell".
+
+---
+
+#### **5. Bố cục đến Chi tiết**
+
+**Quy tắc:** Bắt đầu bằng việc thiết kế kiến trúc tổng thể của hệ thống trước khi đi vào triển khai chi tiết. Một bố cục tốt sẽ định hướng cho toàn bộ quá trình phát triển và giúp các thành phần kết nối với nhau một cách mạch lạc.
+
+*   **Hành động cụ thể:**
+    *   Xác định rõ các module chính, các lớp (class) và mối quan hệ giữa chúng.
+    *   Thiết kế giao diện (API) giữa các thành phần trước khi bắt đầu lập trình.
+    *   Sắp xếp cấu trúc thư mục của dự án một cách logic và nhất quán.
+
+---
+
+#### **6. Tự động hơn Thủ công**
+
+**Quy tắc:** Tự động hóa các tác vụ lặp đi lặp lại để tiết kiệm thời gian, giảm thiểu lỗi do con người và tăng tính nhất quán.
+
+*   **Hành động cụ thể:**
+    *   Sử dụng các hệ thống Tích hợp liên tục/Triển khai liên tục (CI/CD) để tự động hóa quy trình xây dựng, kiểm thử và triển khai ứng dụng.
+    *   Viết các kịch bản (script) để tự động hóa các công việc như thiết lập môi trường, sao lưu dữ liệu, v.v.
+    *   Tận dụng các công cụ tạo mã (code generation) cho các phần mã lặp đi lặp lại.
+
+---
+
+#### **7. Minh bạch hơn Tinh xảo**
+
+**Quy tắc:** Viết mã nguồn rõ ràng, dễ hiểu. Mục tiêu là để người khác (và chính bạn trong tương lai) có thể đọc và hiểu được mục đích của đoạn mã một cách nhanh chóng.
+
+*   **Hành động cụ thể:**
+    *   Mã nguồn nên tự nó nói lên mục đích mà không cần đến quá nhiều bình luận (comment). Chỉ viết bình luận khi cần giải thích những logic phức tạp hoặc lý do đằng sau một quyết định thiết kế.
+    *   Tránh sử dụng các cú pháp ngôn ngữ quá phức tạp hoặc ít người biết đến khi có những cách diễn đạt đơn giản hơn.
+    *   Chia sẻ thông tin và kiến thức trong nhóm một cách cởi mở để mọi người đều nắm được tình hình chung của dự án.
+
+---
+
+#### **8. Kỷ luật hơn Quy ước**
+
+**Quy tắc:** Kỷ luật cá nhân trong việc tuân thủ các quy tắc và tiêu chuẩn đã đề ra là yếu tố quyết định. Ngay cả những quy ước tốt nhất cũng trở nên vô nghĩa nếu không có sự kỷ luật để thực thi.
+
+*   **Hành động cụ thể:**
+    *   Mỗi lập trình viên phải có trách nhiệm tuân thủ nghiêm ngặt các quy tắc chung của nhóm, từ quy ước đặt tên đến quy trình làm việc.
+    *   Đặt ra mục tiêu cụ thể và thực tế cho bản thân và nỗ lực để hoàn thành chúng.
+    *   Luôn giữ cho mã nguồn sạch sẽ và có tổ chức sau mỗi lần chỉnh sửa, theo nguyên tắc "trại hè của hướng đạo sinh": "Để lại khu cắm trại sạch sẽ hơn lúc bạn đến".
+
+---
+
+#### **9. Tiến hóa hơn Cách mạng**
+
+**Quy tắc:** Phát triển phần mềm là một quá trình tiến hóa, không phải là một cuộc cách mạng. Ưu tiên việc cải tiến và hoàn thiện hệ thống một cách liên tục thay vì những thay đổi lớn, đột ngột có thể gây bất ổn.
+
+*   **Hành động cụ thể:**
+    *   Áp dụng các phương pháp phát triển linh hoạt (Agile) như Scrum hoặc Kanban để có thể thích ứng với các yêu cầu thay đổi.
+    *   Phát triển phần mềm theo từng phần nhỏ, có thể hoạt động được (incremental development) để nhận phản hồi sớm và thường xuyên từ người dùng.
+    *   Khi cần thực hiện những thay đổi lớn, hãy lên kế hoạch chia nhỏ chúng thành các bước và thực hiện một cách tuần tự.
+
+---
+
+#### **10. Cụ thể hơn Mơ hồ**
+
+**Quy tắc:** Các yêu cầu, tài liệu và mã nguồn phải được thể hiện một cách cụ thể, rõ ràng và không gây hiểu nhầm.
+
+*   **Hành động cụ thể:**
+    *   Các yêu cầu chức năng cần được mô tả chi tiết, kèm theo các ví dụ và tiêu chí chấp nhận (acceptance criteria) rõ ràng.
+    *   Trong mã nguồn, tránh sử dụng các tên biến chung chung như `data`, `temp`, `item`. Thay vào đó, hãy dùng những cái tên cụ thể hơn như `customerData`, `temporaryFile`, `productItem`.
+    *   Mỗi câu lệnh trong mã nguồn phải ra lệnh cho máy tính thực hiện một nhiệm vụ rất cụ thể.

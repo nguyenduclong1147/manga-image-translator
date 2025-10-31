@@ -5,9 +5,17 @@ services:
     entrypoint: python
     command: server/main.py --verbose --start-instance --host=0.0.0.0 --port=5003 --use-gpu
     volumes:
+            # Mount config folder - QUAN TRỌNG để load config file
+      - ./../../config:/app/config
+      # Mount result folder để lưu output
       - ./../../result:/app/result
       - ./../../server/main.py:/app/server/main.py
-      - ./../../server/instance.py:/app/server/instance.py      
+      - ./../../server/instance.py:/app/server/instance.py
+      - ./../../server/request_extraction.py:/app/server/request_extraction.py
+      - ./../../server/myqueue.py:/app/server/myqueue.py
+      - ./../../server/to_json.py:/app/server/to_json.py
+      - ./../../server/streaming.py:/app/server/streaming.py
+      - ./../../server/sent_data_internal.py:/app/server/sent_data_internal.py
     ports:
       - 5003:5003
     ipc: host
@@ -50,8 +58,8 @@ services:
       CAIYUN_TOKEN: ''  
       
       # Gemini  
-      GEMINI_API_KEY: ''  
-      GEMINI_MODEL: 'gemini-1.5-flash-002'  
+      GEMINI_API_KEY: 'AIzaSyA8bp0L7p21ExKdRua3G43oPLLvBrlAorg'  
+      GEMINI_MODEL: 'gemini-2.5-flash'  
       
       # DeepSeek  
       DEEPSEEK_API_KEY: ''  
