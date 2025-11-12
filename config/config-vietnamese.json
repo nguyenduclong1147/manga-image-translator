@@ -32,7 +32,7 @@
   },
   "render": {
     "renderer": "default",
-    "alignment": "auto",
+    "alignment": "center",
     "disable_font_border": false,
     "font_size_offset": 0,
     "font_size_minimum": -1,
