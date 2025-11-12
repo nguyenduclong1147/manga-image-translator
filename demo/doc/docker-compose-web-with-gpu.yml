@@ -58,7 +58,7 @@ services:
       CAIYUN_TOKEN: ''  
       
       # Gemini  
-      GEMINI_API_KEY: 'AIzaSyA8bp0L7p21ExKdRua3G43oPLLvBrlAorg'  
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}  
       GEMINI_MODEL: 'gemini-2.5-flash'  
       
       # DeepSeek  
